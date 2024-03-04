@@ -41,7 +41,7 @@ jobs:
 
       # Proceed with your steps, for example, installing dependencies
       - name: Install Dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build And Deploy
         id: builddeploy
