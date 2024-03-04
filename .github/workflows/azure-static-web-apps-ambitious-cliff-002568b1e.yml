@@ -18,16 +18,30 @@ jobs:
           submodules: true
           lfs: false
 
-      # Setup Node.js environment using NVM
-      - name: Setup NVM and Node.js
+      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
+      - name: Setup NVM and Node.js version 18.17.0
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install 18 # This will install the latest Node.js v18.x.x
-          nvm use 18
-          nvm alias default 18 # Optional: set default Node version on nvm to the latest Node.js v18.x.x
+          nvm install 18.17.0
+          nvm use 18.17.0
+          nvm alias default 18.17.0
+
+      # Verify Node.js version is 18.17.0 before proceeding
+      - name: Check Node.js version
+        run: |
+          version=$(node -v)
+          if [[ "$version" != "v18.17.0" ]]; then
+            echo "Node.js version is $version but v18.17.0 was expected. Halting the workflow."
+            exit 1
+          fi
+        shell: bash
+
+      # Proceed with your steps, for example, installing dependencies
+      - name: Install Dependencies
+        run: npm install
 
       - name: Build And Deploy
         id: builddeploy
