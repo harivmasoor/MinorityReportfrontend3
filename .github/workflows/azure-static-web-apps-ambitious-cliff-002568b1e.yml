@@ -33,7 +33,7 @@ jobs:
       - name: Check Node.js version
         run: |
           version=$(node -v)
-          if [[ "$version" != "v18.17.0" ]]; then
+          if [[ "$version" != "v18.x" ]]; then
             echo "Node.js version is $version but v18.17.0 was expected. Halting the workflow."
             exit 1
           fi
