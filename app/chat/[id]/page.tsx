@@ -33,3 +33,5 @@ export default async function ChatPage({params}: ChatPageProps) {
     <ChatEvents agentName={chat.agent} processId={chat.process_id}/>
   )
 }
+
+//test
