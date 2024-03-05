@@ -1,3 +1,5 @@
+'use server'
+
 import { createConnection } from 'mysql2/promise';
 import { config } from 'dotenv';
 import {getServerSession} from "next-auth";

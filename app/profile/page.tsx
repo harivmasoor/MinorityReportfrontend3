@@ -53,9 +53,9 @@ export default function PreviewPage() {
 
   return (
     <div>
-      {/* <button role="link" onClick={updateUser}>
+      <button role="link" onClick={updateUser}>
           Subtract Token
-      </button> */}
+      </button> 
       <p>Tokens remaining: {tokensRemaining}</p>
       <form action="/api/checkout_sessions" method="POST">
       <section>
