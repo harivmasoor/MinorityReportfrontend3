@@ -4,7 +4,7 @@ import {getServerSession} from "next-auth";
 import { RowDataPacket } from 'mysql2';
 
 
-
+// This is a comment
 // Load environment variables for database configuration
 config();
 
