@@ -22,7 +22,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y apt-utils
-
       # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
       - name: Setup NVM and Node.js version 18.17.0
         run: |
@@ -33,7 +32,6 @@ jobs:
           nvm install 18.17.0
           nvm use 18.17.0
           nvm alias default 18.17.0
-
       # Verify Node.js version is 18.17.0 before proceeding
       - name: Check Node.js version
         run: |
