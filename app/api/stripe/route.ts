@@ -56,8 +56,8 @@ export async function POST(req: Request): Promise<Response> {
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
-        return new Response(JSON.stringify({ error: `Webhook Error: ${err.message}` }), {
+        console.error(`Webhook Error: ${err}`);
+        return new Response(JSON.stringify({ error: `Webhook Error: ${err}` }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
         });
