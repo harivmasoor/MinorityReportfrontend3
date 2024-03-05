@@ -23,18 +23,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y apt-utils
 
-      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
       - name: Setup NVM and Node.js version 18.17.0
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
           nvm install 18.17.0
           nvm use 18.17.0
           nvm alias default 18.17.0
 
-      # Verify Node.js version is 18.17.0 before proceeding
       - name: Check Node.js version
         run: |
           version=$(node -v)
@@ -44,32 +42,39 @@ jobs:
           fi
         shell: bash
 
-      # Install PNPM
       - name: Install PNPM
         run: npm install -g pnpm
 
-      # Setup .env file from template (Assuming template.env exists in your repository)
-      # - name: Setup Environment File
-      #   run: cp template.env .env
-
-      # Install dependencies using PNPM
       - name: Install Dependencies with PNPM
         run: pnpm install
 
-      # Build and deploy using PNPM if necessary
       - name: Build with PNPM
         run: pnpm run build
+
+      # This step installs the MySQL client, which you might use for database operations.
+      - name: Install MySQL Client
+        run: sudo apt-get install mysql-client -y
+
+      # Hypothetical step for running a MySQL command, demonstrating use of secrets for sensitive information
+      - name: Run MySQL Command
+        run: |
+          mysql --user ${{ secrets.DB_USER }} --password=${{ secrets.DB_PASSWORD }} --host ${{ secrets.DB_HOST }} --port ${{ secrets.DB_PORT }} defaultdb
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
 
       - name: Deploy
         id: deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AMBITIOUS_CLIFF_002568B1E }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "" # Built app content directory - optional
+          app_location: "/" 
+          api_location: "" 
+          output_location: ""
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -82,3 +87,4 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AMBITIOUS_CLIFF_002568B1E }}
           action: "close"
+
