@@ -14,7 +14,6 @@ jobs:
     name: Build and Deploy Job
     steps:
       - uses: actions/checkout@v3
-        name: Setup .NET
         with:
           submodules: true
           lfs: false
