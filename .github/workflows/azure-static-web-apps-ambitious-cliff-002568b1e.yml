@@ -1,3 +1,5 @@
+name: Build and deploy Node.js app to Azure Web App
+
 on:
   push:
     branches:
@@ -6,119 +8,38 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-
-  build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  build_and_deploy:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
         with:
-          submodules: true
-          lfs: false
+          node-version: '18.x'
+          cache: 'npm'
 
-      - name: Install apt-utils
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y apt-utils
+      - name: Install dependencies
+        run: npm install
 
-      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
-      - name: Setup NVM and Node.js version 18.17.0
-        run: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-          nvm install 18.17.0
-          nvm use 18.17.0
-          nvm alias default 18.17.0
+      - name: Build the project
+        run: npm run build --if-present
 
-      # Verify Node.js version is 18.17.0 before proceeding
-      - name: Check Node.js version
-        run: |
-          version=$(node -v)
-          if [[ "$version" != v18.* ]]; then
-            echo "Node.js version is $version but v18.x was expected. Halting the workflow."
-            exit 1
-          fi
-        shell: bash
+      - name: Run tests
+        run: npm run test --if-present
 
-      # Install keyring packages
-      - name: Install keyring packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnome-keyring libsecret-1-0 libsecret-1-dev
+      - name: Zip artifact for deployment
+        run: zip -r release.zip .
 
-      # Set environment variables
-      - name: Set environment variables
-        run: |
-          export $(dbus-launch)
-
-      # Install PNPM
-      - name: Install PNPM
-        run: npm install -g pnpm
-
-      # Install dependencies using PNPM
-      - name: Install Dependencies with PNPM
-        run: pnpm install
-
-      # Configure Aiven CA Certificate
-      - name: Configure Aiven CA Certificate
-        run: |
-          echo "${{ secrets.AIVEN_CA_CERT }}" > aiven-ca.crt
-        env:
-          AIVEN_CA_CERT: |
-            -----BEGIN CERTIFICATE-----
-            MIIEQTCCAqmgAwIBAgIUd0ewlOUu2ADAF7/oVYNBRCEwFW0wDQYJKoZIhvcNAQEM
-            BQAwOjE4MDYGA1UEAwwvY2E0YWEzODAtNmQ2MS00MTRlLThhMDItMGIyZGE4Njcy
-            ZTFhIFByb2plY3QgQ0EwHhcNMjQwMjEzMjAxMzM5WhcNMzQwMjEwMjAxMzM5WjA6
-            MTgwNgYDVQQDDC9jYTRhYTM4MC02ZDYxLTQxNGUtOGEwMi0wYjJkYTg2NzJlMWEg
-            UHJvamVjdCBDQTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAJvbg/gX
-            UaSTXy5JpCch6zmWtn7b8U3/e6Vg6RbRgF9l/ij2mPUySieTFGk2/E6AkoSSIn5U
-            6xV/ChcW+O/FcRuqg8cpia65TB8d1PcMVA3KBOkQkTWsGqkvXThu2G/az9qYBrfY
-            Z4KWH3J3NMCXcEhxn1A9uyulaIdVb14N9prX5aa+I4hOTIeRmDxsqJElFDKGfX3y
-            i7BFcW4GJBCv4CV5qas2ogsvNM48iKczPmTW170HmLCy5ShX8kaPH4U45YhGa3f5
-            aD87clVHGJoGXKB0hMmnb5TYkkIv94zxoSeTROhOOQC6zgc6j+kPqBmB1Qc9PTxw
-            60vr0tr8gm5eSAG1SyLhDSeXk377PGyYhdohuyOyJ/1xb+7nie0Z+VBSJEARb6hw
-            nC5ivtP/jjsvVOkK4RqyQc2PLR7qsyOuV7gd0MkRBTSN+qhPCwCybYfTZ5rmr998
-            ifyuICnCTMDh/cioADXNY8OFoNwyoB9NSFUJ6Jb0l8yT2QqJXAmhljaUMQIDAQAB
-            oz8wPTAdBgNVHQ4EFgQUJ2Xv33p8+0VVrHXhy/UXg68hMd4wDwYDVR0TBAgwBgEB
-            /wIBADALBgNVHQ8EBAMCAQYwDQYJKoZIhvcNAQEMBQADggGBABk7EdLIwoIK7UIL
-            4lylFzZ1cK4un4TvLsy4MSlpPNtAhlye+W/8/mJelSJFk508sko9jcvvUQktVa5Y
-            5TJgwBaMxEHsKmwWYhryuFXL2xNaFoAwGtDrg5Gfl4FUVAeT7gApHYtd27XoucQX
-            2bZk4Otyviyj9hss8gkpT2DnlH5KFKSOENpbEXkSIN1O9FcNwmDdBX3mntTb5LDd
-            jiXYOjsVPScw4XEo2mpu3hsuY+pX0zoGihDvVlnj6Zw6xFTa1QK5dLaK1Nwm+vds
-            zyTLL4DNtrTtg4rgnJixsip4ninNF0807ydXpDH1CIMHf8JYBKYUmBbaQKvy0PSg
-            4tF2fZNeBilv4l0WpuLTraUGdnk8AN/npVEu7AJPzFRQK5MyjLL/Hj5UI3FKTFsB
-            8lV3ekRU+nvqp8d5Q0URiIN5BHN4U17dZzGlXd7QelT+UjesC2PoRssThvt/tGSB
-            hw81wO8SWgGRihxmdybx3AgQDNtdMZipRyIcqU+7869FMS8vtA==
-            -----END CERTIFICATE-----
-
-      # Build and deploy using PNPM if necessary
-      - name: Build with PNPM
-        run: pnpm run build
-
-      - name: Deploy
-        id: deploy
-        uses: Azure/static-web-apps-deploy@v1
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AMBITIOUS_CLIFF_002568B1E }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/"
-          api_location: ""
-          output_location: ""
-
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AMBITIOUS_CLIFF_002568B1E }}
-          action: "close"
+          app-name: 'MinorityReport2'
+          slot-name: 'production'
+          package: release.zip
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
