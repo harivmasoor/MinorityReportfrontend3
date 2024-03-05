@@ -64,4 +64,5 @@ jobs:
         with:
           app-name: 'MinorityReport2'
           slot-name: 'production'
-          package: .
+          package: release.zip
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
