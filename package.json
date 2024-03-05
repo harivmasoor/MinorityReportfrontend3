@@ -93,6 +93,6 @@
   },
   "packageManager": "pnpm@8.6.3",
   "engines": {
-    "node": ">=18.17.0"
+    "node": "18.x"
   }
 }
