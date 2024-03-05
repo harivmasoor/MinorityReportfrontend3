@@ -18,6 +18,11 @@ jobs:
           submodules: true
           lfs: false
 
+      - name: Install apt-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-utils
+
       # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
       - name: Setup NVM and Node.js version 18.17.0
         run: |
