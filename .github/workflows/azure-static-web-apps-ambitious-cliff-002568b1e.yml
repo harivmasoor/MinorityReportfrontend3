@@ -64,6 +64,17 @@ jobs:
       - name: Install Dependencies with PNPM
         run: pnpm install
 
+      # Configure Aiven CA Certificate
+      - name: Configure Aiven CA Certificate
+        env:
+          AIVEN_CA_CERT: ${{ secrets.AIVEN_CA_CERT }}
+        run: |
+          # Create a temporary file with the Aiven CA certificate
+          echo "$AIVEN_CA_CERT" > /tmp/aiven-ca.crt
+
+          # Configure your application or script to use the Aiven CA certificate
+          export MYSQL_SSL_CA=/tmp/aiven-ca.crt
+
       # Build and deploy using PNPM if necessary
       - name: Build with PNPM
         run: pnpm run build
