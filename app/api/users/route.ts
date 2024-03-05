@@ -81,7 +81,7 @@ export async function POST(req: Request): Promise<Response> {
 export async function GET(req: Request): Promise<Response> {
     console.log('GET request');
     try {
-        const sesh = await getServerSession(req); // Make sure to pass `req` if your session function needs it
+        const sesh = await getServerSession(); // Make sure to pass `req` if your session function needs it
         
         let email = sesh?.user?.email;
         if (!email) {
