@@ -49,8 +49,8 @@ jobs:
         run: npm install -g pnpm
 
       # Setup .env file from template (Assuming template.env exists in your repository)
-      - name: Setup Environment File
-        run: cp template.env .env
+      # - name: Setup Environment File
+      #   run: cp template.env .env
 
       # Install dependencies using PNPM
       - name: Install Dependencies with PNPM
