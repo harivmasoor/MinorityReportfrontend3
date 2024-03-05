@@ -1,12 +1,11 @@
-import type {NextApiRequest, NextApiResponse} from 'next';
+import type {NextRequest, } from 'next/server';
 import Stripe from 'stripe';
 import {redirect} from "next/navigation";
-import { NextResponse } from 'next/server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const baseURL = process.env.NEXTAUTH_URL;
 
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
+export async function POST(req: NextRequest, res: Response) {
   try {
     // Create Checkout Sessions from body params.
     console.log("stripe_before")
@@ -25,7 +24,7 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
     // Redirect to the session URL
     console.log(res)
     console.log("*****session", session.url)
-    return NextResponse.redirect(session.url!, 302);
+    return Response.redirect(session.url!, 302);
   } catch (err) {
     // Make sure to return a response in case of error
     console.error('Error creating Stripe Session:', err);
