@@ -66,14 +66,35 @@ jobs:
 
       # Configure Aiven CA Certificate
       - name: Configure Aiven CA Certificate
-        env:
-          AIVEN_CA_CERT: ${{ secrets.AIVEN_CA_CERT }}
         run: |
-          # Create a temporary file with the Aiven CA certificate
-          echo "$AIVEN_CA_CERT" > /tmp/aiven-ca.crt
-
-          # Configure your application or script to use the Aiven CA certificate
-          export MYSQL_SSL_CA=/tmp/aiven-ca.crt
+          echo "${{ secrets.AIVEN_CA_CERT }}" > aiven-ca.crt
+        env:
+          AIVEN_CA_CERT: |
+            -----BEGIN CERTIFICATE-----
+            MIIEQTCCAqmgAwIBAgIUd0ewlOUu2ADAF7/oVYNBRCEwFW0wDQYJKoZIhvcNAQEM
+            BQAwOjE4MDYGA1UEAwwvY2E0YWEzODAtNmQ2MS00MTRlLThhMDItMGIyZGE4Njcy
+            ZTFhIFByb2plY3QgQ0EwHhcNMjQwMjEzMjAxMzM5WhcNMzQwMjEwMjAxMzM5WjA6
+            MTgwNgYDVQQDDC9jYTRhYTM4MC02ZDYxLTQxNGUtOGEwMi0wYjJkYTg2NzJlMWEg
+            UHJvamVjdCBDQTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAJvbg/gX
+            UaSTXy5JpCch6zmWtn7b8U3/e6Vg6RbRgF9l/ij2mPUySieTFGk2/E6AkoSSIn5U
+            6xV/ChcW+O/FcRuqg8cpia65TB8d1PcMVA3KBOkQkTWsGqkvXThu2G/az9qYBrfY
+            Z4KWH3J3NMCXcEhxn1A9uyulaIdVb14N9prX5aa+I4hOTIeRmDxsqJElFDKGfX3y
+            i7BFcW4GJBCv4CV5qas2ogsvNM48iKczPmTW170HmLCy5ShX8kaPH4U45YhGa3f5
+            aD87clVHGJoGXKB0hMmnb5TYkkIv94zxoSeTROhOOQC6zgc6j+kPqBmB1Qc9PTxw
+            60vr0tr8gm5eSAG1SyLhDSeXk377PGyYhdohuyOyJ/1xb+7nie0Z+VBSJEARb6hw
+            nC5ivtP/jjsvVOkK4RqyQc2PLR7qsyOuV7gd0MkRBTSN+qhPCwCybYfTZ5rmr998
+            ifyuICnCTMDh/cioADXNY8OFoNwyoB9NSFUJ6Jb0l8yT2QqJXAmhljaUMQIDAQAB
+            oz8wPTAdBgNVHQ4EFgQUJ2Xv33p8+0VVrHXhy/UXg68hMd4wDwYDVR0TBAgwBgEB
+            /wIBADALBgNVHQ8EBAMCAQYwDQYJKoZIhvcNAQEMBQADggGBABk7EdLIwoIK7UIL
+            4lylFzZ1cK4un4TvLsy4MSlpPNtAhlye+W/8/mJelSJFk508sko9jcvvUQktVa5Y
+            5TJgwBaMxEHsKmwWYhryuFXL2xNaFoAwGtDrg5Gfl4FUVAeT7gApHYtd27XoucQX
+            2bZk4Otyviyj9hss8gkpT2DnlH5KFKSOENpbEXkSIN1O9FcNwmDdBX3mntTb5LDd
+            jiXYOjsVPScw4XEo2mpu3hsuY+pX0zoGihDvVlnj6Zw6xFTa1QK5dLaK1Nwm+vds
+            zyTLL4DNtrTtg4rgnJixsip4ninNF0807ydXpDH1CIMHf8JYBKYUmBbaQKvy0PSg
+            4tF2fZNeBilv4l0WpuLTraUGdnk8AN/npVEu7AJPzFRQK5MyjLL/Hj5UI3FKTFsB
+            8lV3ekRU+nvqp8d5Q0URiIN5BHN4U17dZzGlXd7QelT+UjesC2PoRssThvt/tGSB
+            hw81wO8SWgGRihxmdybx3AgQDNtdMZipRyIcqU+7869FMS8vtA==
+            -----END CERTIFICATE-----
 
       # Build and deploy using PNPM if necessary
       - name: Build with PNPM
