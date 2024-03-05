@@ -3,35 +3,32 @@ import { useState, useEffect } from 'react';
 
 export default function PreviewPage() {
   const [tokensRemaining, setTokensRemaining] = useState(null);
-  const [fetchError, setFetchError] = useState(''); // State for fetch errors
-  const [updateError, setUpdateError] = useState(''); // State for update errors
 
+  // Define a function to fetch tokens remaining
   const fetchTokensRemaining = () => {
-    fetch('/api/users', {
+    fetch('/api/users', { // Make sure this endpoint is correct
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        // Include session token or credentials if required
       },
     })
     .then(response => response.json())
     .then(data => {
       if (data.token_remaining !== undefined) {
         setTokensRemaining(data.token_remaining);
-        setFetchError(''); // Reset fetch error on successful fetch
       } else {
         console.error('Failed to fetch tokens remaining');
-        setFetchError('Failed to fetch tokens remaining');
       }
     })
-    .catch(error => {
-      console.error('Error fetching tokens remaining:', error);
-      setFetchError(`Error fetching tokens remaining: ${error.message}`);
-    });
+    .catch(error => console.error('Error fetching tokens remaining:', error));
   };
 
+  // Fetch tokens remaining on component mount
   useEffect(() => {
     fetchTokensRemaining();
 
+    // Initial checks for Stripe checkout feedback
     const query = new URLSearchParams(window.location.search);
     if (query.get('success')) {
       console.log('Order placed! You will receive an email confirmation.');
@@ -48,25 +45,24 @@ export default function PreviewPage() {
     .then((response) => response.json())
     .then((data) => {
       console.log(data);
+      // Re-fetch tokens remaining to update the UI with the new count
       fetchTokensRemaining();
-      setUpdateError(''); // Reset update error on successful update
     })
-    .catch(error => {
-      console.error('Error updating user:', error);
-      setUpdateError(`Error updating user: ${error.message}`);
-    });
+    .catch(error => console.error('Error updating user:', error));
   };
 
   return (
     <div>
-      {/* <button role="link" onClick={updateUser}>Subtract Token</button> */}
+      {/* <button role="link" onClick={updateUser}>
+          Subtract Token
+      </button> */}
       <p>Tokens remaining: {tokensRemaining}</p>
-      {fetchError && <p className="error">Fetch Error: {fetchError}</p>}
-      {updateError && <p className="error">Update Error: {updateError}</p>}
       <form action="/api/checkout_sessions" method="POST">
-        <section>
+      <section>
           <p>Please ensure you enter your Gmail address exactly as registered, including any dots. Or the stripe payment will not associate the tokens with your account.</p>
-          <button type="submit" role="link">Checkout</button>
+          <button type="submit" role="link">
+            Checkout
+          </button>
         </section>
         <style jsx>{`
           section {
@@ -91,9 +87,6 @@ export default function PreviewPage() {
           }
           button:hover {
             opacity: 0.8;
-          }
-          .error {
-            color: red;
           }
         `}</style>
       </form>
