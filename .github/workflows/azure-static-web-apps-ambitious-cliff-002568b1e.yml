@@ -59,6 +59,10 @@ jobs:
       # Build and deploy using PNPM if necessary
       - name: Build with PNPM
         run: pnpm run build
+        
+      # Build and deploy using PNPM if necessary
+      - name: Run Next
+        run: pnpm run start
 
       - name: Deploy
         id: deploy
