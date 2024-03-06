@@ -1,63 +1,71 @@
-name: Build and deploy Node.js app to Azure Web App - MinorityReport2
-
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+    pull_request:
+      types: [opened, synchronize, reopened, closed]
+      branches:
+      - main
 
 jobs:
-  build:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
+    name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
         with:
-          node-version: '18.x'
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
-      - name: Zip artifact for deployment
-        run: |
-          zip -r release.zip . -x node_modules/* -x .git/* -x path/to/large_directory/* -x another_large_directory/*
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
-        with:
-          name: node-app
-          path: release.zip
+          submodules: true
+          lfs: false
 
-  deploy:
+      - name: Install apt-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-utils
+      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
+      - name: Setup NVM and Node.js version 18.17.0
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          nvm install 18.17.0
+          nvm use 18.17.0
+          nvm alias default 18.17.0
+      # Verify Node.js version is 18.17.0 before proceeding
+      - name: Check Node.js version
+        run: |
+          version=$(node -v)
+          if [[ "$version" != v18.* ]]; then
+            echo "Node.js version is $version but v18.x was expected. Halting the workflow."
+            exit 1
+          fi
+        shell: bash
+
+      # Install PNPM
+      - name: Install PNPM
+        run: npm install -g pnpm
+
+      # Setup .env file from template (Assuming template.env exists in your repository)
+      # - name: Setup Environment File
+      #   run: cp template.env .env
+
+      # Install dependencies using PNPM
+      - name: Install Dependencies with PNPM
+        run: pnpm install
+
+      # Build and deploy using PNPM if necessary
+      - name: Build with PNPM
+        run: pnpm run build
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write  # This is required for requesting the JWT
+    name: Close Pull Request Job
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v3
-        with:
-          name: node-app
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      - name: Close Pull Request
+        id: closepullrequest
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'MinorityReport2'
-          slot-name: 'production'
-          package: release.zip
-          publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
-      - name: Restart Azure Web App
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az webapp restart --name MinorityReport2 --resource-group crime
+          action: "close"
+
