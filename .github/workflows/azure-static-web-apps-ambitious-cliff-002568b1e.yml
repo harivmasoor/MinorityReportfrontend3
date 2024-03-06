@@ -25,7 +25,8 @@ jobs:
           npm run test --if-present
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: |
+          zip -r release.zip . -x node_modules\* -x .git\* -x path/to/large_directory\* -x another_large_directory\*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
@@ -39,7 +40,6 @@ jobs:
     environment:
       name: 'production'
       url: 'https://MinorityReport2.azurewebsites.net'
-
     permissions:
       id-token: write #This is required for requesting the JWT
 
@@ -65,3 +65,4 @@ jobs:
           slot-name: 'production'
           package: release.zip
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
+
