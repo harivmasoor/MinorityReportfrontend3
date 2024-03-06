@@ -1,3 +1,4 @@
+#testings
 name: Build and deploy Node.js app to Azure Web App - MinorityReport3
 
 on:
@@ -65,5 +66,6 @@ jobs:
           app-name: 'MinorityReport3'
           slot-name: 'Production'
           package: .
+
 
           
