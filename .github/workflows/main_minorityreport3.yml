@@ -21,12 +21,11 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: npm install, build, test, and prune
+      - name: npm install, build, test
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
-          npm prune --production
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r -x "node_modules/*" -x "*.git*"
