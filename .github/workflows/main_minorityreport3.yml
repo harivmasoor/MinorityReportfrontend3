@@ -7,25 +7,61 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
 
 jobs:
   build:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-
+    name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
         with:
-          node-version: '18.x'
+          submodules: true
+          lfs: false
 
-      - name: npm install, build, test
+      - name: Install apt-utils
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          sudo apt-get update
+          sudo apt-get install -y apt-utils
+      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
+      - name: Setup NVM and Node.js version 18.17.0
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          nvm install 18.17.0
+          nvm use 18.17.0
+          nvm alias default 18.17.0
+      # Verify Node.js version is 18.17.0 before proceeding
+      - name: Check Node.js version
+        run: |
+          version=$(node -v)
+          if [[ "$version" != v18.* ]]; then
+            echo "Node.js version is $version but v18.x was expected. Halting the workflow."
+            exit 1
+          fi
+        shell: bash
+
+      # Install PNPM
+      - name: Install PNPM
+        run: npm install -g pnpm
+
+      # Setup .env file from template (Assuming template.env exists in your repository)
+      # - name: Setup Environment File
+      #   run: cp template.env .env
+
+      # Install dependencies using PNPM
+      - name: Install Dependencies with PNPM
+        run: pnpm install
+
+      # Build and deploy using PNPM if necessary
+      - name: Build with PNPM
+        run: pnpm run build
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r -x "node_modules/*" -x "*.git*"
