@@ -50,7 +50,10 @@ jobs:
 
       - name: Build with PNPM
         run: pnpm run build
-
+        
+      - name: Build with PNPM
+        run: pnpm run start
+        
       - name: Package Application for Deployment
         run: |
           zip -r app.zip . -x "*.git*" "*node_modules*" "*.github*" "*__tests__*" "*logs*"
@@ -62,7 +65,7 @@ jobs:
           app-name: 'MinorityReport2'
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
           package: './app.zip'
-
+          
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
