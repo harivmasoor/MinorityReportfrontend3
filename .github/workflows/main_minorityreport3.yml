@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy Node.js app to Azure Web App - MinorityReport3
 
 on:
@@ -27,17 +24,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y apt-utils
-      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
+
       - name: Setup NVM and Node.js version 18.17.0
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
           nvm install 18.17.0
           nvm use 18.17.0
           nvm alias default 18.17.0
-      # Verify Node.js version is 18.17.0 before proceeding
+
       - name: Check Node.js version
         run: |
           version=$(node -v)
@@ -45,21 +42,17 @@ jobs:
             echo "Node.js version is $version but v18.x was expected. Halting the workflow."
             exit 1
           fi
-        shell: bash
 
-      # Install PNPM
       - name: Install PNPM
         run: npm install -g pnpm
 
-      # Setup .env file from template (Assuming template.env exists in your repository)
-      # - name: Setup Environment File
-      #   run: cp template.env .env
-
-      # Install dependencies using PNPM
       - name: Install Dependencies with PNPM
         run: pnpm install
 
-      # Build and deploy using PNPM if necessary
+      # Explicitly install Next.js dependencies
+      - name: Install Next.js
+        run: npm install next react react-dom
+
       - name: Build with PNPM
         run: pnpm run build
 
@@ -72,15 +65,12 @@ jobs:
           name: node-app
           path: release.zip
 
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -94,9 +84,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D69DEEFB60194E19A3A3676068F33C24 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C5C3D265EE9641BF8ED19E9E79496921 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_607172755E894E3CBC8C14827F77D540 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -105,4 +95,4 @@ jobs:
           app-name: 'MinorityReport3'
           slot-name: 'Production'
           package: .
-          
+
