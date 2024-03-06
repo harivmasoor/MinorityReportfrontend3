@@ -9,25 +9,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-
       - name: npm install, build, and test
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
-
       - name: Zip artifact for deployment
         run: |
-          zip -r release.zip . -x node_modules\* -x .git\* -x path/to/large_directory\* -x another_large_directory\*
-
+          zip -r release.zip . -x node_modules/* -x .git/* -x path/to/large_directory/* -x another_large_directory/*
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
@@ -41,22 +36,23 @@ jobs:
       name: 'production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-
+      id-token: write  # This is required for requesting the JWT
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v3
         with:
           name: node-app
-
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
       - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+      - name: Clear Deployment Lock
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp deployment slot create --name MinorityReport2 --slot production --resources-group crime
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
@@ -65,4 +61,9 @@ jobs:
           slot-name: 'production'
           package: release.zip
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
+      - name: Restart Azure Web App
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp restart --name MinorityReport2 --resource-group crime
 
