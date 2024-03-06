@@ -63,7 +63,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'MinorityReport2' # The name of your Azure Web App
-          ppublish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
           package: '/'
 
   close_pull_request_job:
