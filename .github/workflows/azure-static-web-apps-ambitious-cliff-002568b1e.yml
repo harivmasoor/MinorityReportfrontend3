@@ -2,10 +2,10 @@ on:
   push:
     branches:
       - main
-    pull_request:
-      types: [opened, synchronize, reopened, closed]
-      branches:
-      - main
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+    - main
 
 jobs:
   build_and_deploy_job:
@@ -22,17 +22,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y apt-utils
-      # Setup Node.js environment using NVM to specifically use Node.js version 18.17.0
+
       - name: Setup NVM and Node.js version 18.17.0
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
           nvm install 18.17.0
           nvm use 18.17.0
           nvm alias default 18.17.0
-      # Verify Node.js version is 18.17.0 before proceeding
+
       - name: Check Node.js version
         run: |
           version=$(node -v)
@@ -42,29 +42,25 @@ jobs:
           fi
         shell: bash
 
-      # Install PNPM
       - name: Install PNPM
         run: npm install -g pnpm
 
-      # Setup .env file from template (Assuming template.env exists in your repository)
-      # - name: Setup Environment File
-      #   run: cp template.env .env
-
-      # Install dependencies using PNPM
       - name: Install Dependencies with PNPM
         run: pnpm install
 
-      # Build and deploy using PNPM if necessary
       - name: Build with PNPM
         run: pnpm run build
-        
+
+      - name: Package Application for Deployment
+        run: zip -r app.zip . -x "*.git*" "*node_modules*" "*.github*" "*__tests__*"
+      
       - name: Deploy to Azure Web App
         id: deploy
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'MinorityReport2' # The name of your Azure Web App
+          app-name: 'MinorityReport2'
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_e87582fc4abb40ef9cfd5ab6fc80be88 }}
-          package: '/'
+          package: './app.zip'
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
