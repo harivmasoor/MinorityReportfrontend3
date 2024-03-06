@@ -52,7 +52,7 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            az webapp deployment slot create --name MinorityReport2 --slot production --resources-group crime
+            az webapp deployment slot create --name MinorityReport2 --slot production --resource-group crime
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
@@ -66,4 +66,3 @@ jobs:
         with:
           inlineScript: |
             az webapp restart --name MinorityReport2 --resource-group crime
-
