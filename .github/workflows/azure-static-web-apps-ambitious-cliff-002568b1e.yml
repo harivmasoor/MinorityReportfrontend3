@@ -52,7 +52,8 @@ jobs:
         run: pnpm run build
 
       - name: Package Application for Deployment
-        run: zip -r app.zip . -x "*.git*" "*node_modules*" "*.github*" "*__tests__*"
+        run: |
+          zip -r app.zip . -x "*.git*" "*node_modules*" "*.github*" "*__tests__*" "*logs*"
       
       - name: Deploy to Azure Web App
         id: deploy
